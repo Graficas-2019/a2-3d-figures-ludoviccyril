@@ -847,8 +847,6 @@ function createOctahedron(gl, translation, rotationAxis) {
       translationUp = true;
     }
 
-    console.log(this.modelViewMatrix);
-
     if (translationUp) {
       mat4.translate(this.modelViewMatrix, this.modelViewMatrix, [
         0,
