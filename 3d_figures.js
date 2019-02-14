@@ -73,7 +73,11 @@ function initGL(canvas) {
   mat4.translate(projectionMatrix, projectionMatrix, [0, 0, -5]);
 }
 
-function createDodecahedron(gl, translation, rotationAxis) {
+function rotateX(coords) {
+  return [coords[0], -coords[2], coords[1]];
+}
+
+function createDodecahedron(gl, translation, rotationAxis1, rotationAxis2) {
   // VERTICES
 
   var vertexBuffer;
@@ -451,7 +455,14 @@ function createDodecahedron(gl, translation, rotationAxis) {
       this.modelViewMatrix,
       this.modelViewMatrix,
       angle,
-      rotationAxis
+      rotationAxis1
+    );
+
+    mat4.rotate(
+      this.modelViewMatrix,
+      this.modelViewMatrix,
+      angle,
+      rotationAxis2
     );
   };
 
@@ -470,64 +481,64 @@ function createPyramid(gl, translation, rotationAxis) {
     0,
     0,
     Math.cos((2 * Math.PI) / 5),
+    0,
     Math.sin((2 * Math.PI) / 5),
-    0,
     Math.cos((4 * Math.PI) / 5),
+    0,
     Math.sin((4 * Math.PI) / 5),
-    0,
     Math.cos((6 * Math.PI) / 5),
+    0,
     Math.sin((6 * Math.PI) / 5),
-    0,
     Math.cos((8 * Math.PI) / 5),
-    Math.sin((8 * Math.PI) / 5),
     0,
+    Math.sin((8 * Math.PI) / 5),
 
     0,
-    0,
     3,
+    0,
     1,
     0,
     0,
     Math.cos((2 * Math.PI) / 5),
-    Math.sin((2 * Math.PI) / 5),
     0,
+    Math.sin((2 * Math.PI) / 5),
 
     0,
-    0,
     3,
+    0,
     Math.cos((2 * Math.PI) / 5),
+    0,
     Math.sin((2 * Math.PI) / 5),
+    Math.cos((4 * Math.PI) / 5),
+    0,
+    Math.sin((4 * Math.PI) / 5),
+
+    0,
+    3,
     0,
     Math.cos((4 * Math.PI) / 5),
-    Math.sin((4 * Math.PI) / 5),
     0,
+    Math.sin((4 * Math.PI) / 5),
+    Math.cos((6 * Math.PI) / 5),
+    0,
+    Math.sin((6 * Math.PI) / 5),
 
     0,
-    0,
     3,
-    Math.cos((4 * Math.PI) / 5),
-    Math.sin((4 * Math.PI) / 5),
     0,
     Math.cos((6 * Math.PI) / 5),
-    Math.sin((6 * Math.PI) / 5),
     0,
+    Math.sin((6 * Math.PI) / 5),
+    Math.cos((8 * Math.PI) / 5),
+    0,
+    Math.sin((8 * Math.PI) / 5),
 
     0,
-    0,
     3,
-    Math.cos((6 * Math.PI) / 5),
-    Math.sin((6 * Math.PI) / 5),
     0,
     Math.cos((8 * Math.PI) / 5),
+    0,
     Math.sin((8 * Math.PI) / 5),
-    0,
-
-    0,
-    0,
-    3,
-    Math.cos((8 * Math.PI) / 5),
-    Math.sin((8 * Math.PI) / 5),
-    0,
     1,
     0,
     0
@@ -645,84 +656,84 @@ function createOctahedron(gl, translation, rotationAxis) {
 
   var verts = [
     0,
-    0,
-    1,
-    1,
     1,
     0,
+    1,
+    0,
+    1,
     -1,
-    1,
     0,
+    1,
 
     0,
-    0,
-    1,
-    1,
     1,
     0,
     1,
+    0,
+    1,
+    1,
+    0,
     -1,
-    0,
 
     0,
-    0,
-    1,
-    -1,
-    -1,
-    0,
-    -1,
     1,
     0,
+    -1,
+    0,
+    -1,
+    -1,
+    0,
+    1,
 
     0,
-    0,
     1,
-    -1,
+    0,
     -1,
     0,
+    -1,
     1,
-    -1,
     0,
+    -1,
 
     0,
-    0,
     -1,
-    1,
+    0,
     1,
     0,
+    1,
     -1,
-    1,
     0,
+    1,
 
     0,
-    0,
-    -1,
-    1,
-    1,
-    0,
-    1,
     -1,
     0,
+    1,
+    0,
+    1,
+    1,
+    0,
+    -1,
 
     0,
-    0,
-    -1,
-    -1,
     -1,
     0,
     -1,
+    0,
+    -1,
+    -1,
+    0,
     1,
-    0,
 
     0,
-    0,
-    -1,
-    -1,
     -1,
     0,
+    -1,
+    0,
+    -1,
     1,
-    -1,
-    0
+    0,
+    -1
   ];
 
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(verts), gl.STATIC_DRAW);
@@ -812,6 +823,8 @@ function createOctahedron(gl, translation, rotationAxis) {
     translation
   );
 
+  let translationUp = true;
+
   octahedron.update = function() {
     var now = Date.now();
     var deltat = now - this.currentTime;
@@ -825,6 +838,30 @@ function createOctahedron(gl, translation, rotationAxis) {
       angle,
       rotationAxis
     );
+
+    if (this.modelViewMatrix[13] > 3.1) {
+      translationUp = false;
+    }
+
+    if (this.modelViewMatrix[13] < -3.1) {
+      translationUp = true;
+    }
+
+    console.log(this.modelViewMatrix);
+
+    if (translationUp) {
+      mat4.translate(this.modelViewMatrix, this.modelViewMatrix, [
+        0,
+        fract * 10,
+        0
+      ]);
+    } else {
+      mat4.translate(this.modelViewMatrix, this.modelViewMatrix, [
+        0,
+        -fract * 10,
+        0
+      ]);
+    }
   };
 
   return octahedron;
